@@ -8,17 +8,9 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
-from app.services.visualization_service import (
-    generate_visualization,
-)
-from app.services.ai_query_service import (
-    analyze_database_question,
-)
-from app.tools.sql_validator import SQLValidationError
 BASE_DIR = Path(__file__).resolve().parent.parent
-sys.path.append(str(BASE_DIR))
-from app.services.knowledge_service import (
-    answer_knowledge_question,
+from app.services.unified_assistant_service import (
+    ask_unified_assistant,
 )
 
 from app.services.manufacturing_service import (
@@ -131,12 +123,12 @@ with st.sidebar:
     st.divider()
 
     if st.button(
-        "Clear AI Chat",
+        "Clear Assistant Chat",
         use_container_width=True,
     ):
-        st.session_state.chat_history = []
+        st.session_state.unified_chat_history = []
+        st.session_state.pop("pending_question", None)
         st.rerun()
-
 
 if len(selected_date_range) == 2:
     start_date = selected_date_range[0].strftime(
@@ -483,66 +475,175 @@ with st.expander("Product Summary Data"):
 
 st.divider()
 
-st.subheader("AI Database Assistant")
+st.subheader("Manufacturing AI Assistant")
 
 st.caption(
-    "Ask questions about products, equipment, orders "
-    "and weight measurements."
+    "Ask about production data, equipment performance, "
+    "alarm handling or quality procedures."
 )
 
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
 
-for message in st.session_state.chat_history:
-    with st.chat_message(message["role"]):
-        if message["role"] == "user":
-            st.write(message["content"])
-        else:
-            st.markdown(message["analysis"])
-            result_records = message.get(
-                "result_records",
-                [],
+if "unified_chat_history" not in st.session_state:
+    st.session_state.unified_chat_history = []
+
+
+def display_assistant_message(
+    message: dict,
+) -> None:
+    st.markdown(
+        message["answer"]
+    )
+
+    route = message.get(
+        "route",
+        "unknown",
+    )
+
+    confidence = message.get(
+        "confidence",
+        0,
+    )
+
+    st.caption(
+        f"Route: {route} | "
+        f"Confidence: {confidence:.2f}"
+    )
+
+    chart_result = message.get(
+        "chart_result"
+    )
+
+    if (
+        chart_result is not None
+        and chart_result.figure is not None
+    ):
+        st.plotly_chart(
+            chart_result.figure,
+            use_container_width=True,
+        )
+
+    sql = message.get(
+        "sql"
+    )
+
+    if sql:
+        with st.expander(
+            "View generated SQL"
+        ):
+            st.code(
+                sql,
+                language="sql",
             )
 
-            if result_records:
-                historical_result_df = pd.DataFrame(
+    result_records = message.get(
+        "result_records",
+        [],
+    )
+
+    if result_records:
+        with st.expander(
+            "View query result"
+        ):
+            st.dataframe(
+                pd.DataFrame(
                     result_records
+                ),
+                use_container_width=True,
+                hide_index=True,
+            )
+
+    sources = message.get(
+        "sources",
+        [],
+    )
+
+    if sources:
+        with st.expander(
+            "View retrieved sources"
+        ):
+            for index, source in enumerate(
+                sources,
+                start=1,
+            ):
+                title = (
+                    f"Source {index}: "
+                    f"{source['source']}"
                 )
 
-                historical_chart = generate_visualization(
-                    dataframe=historical_result_df,
-                    question=message.get(
-                        "question",
-                        "",
-                    ),
-                )
-
-                if historical_chart.figure is not None:
-                    st.plotly_chart(
-                        historical_chart.figure,
-                        use_container_width=True,
+                if source.get(
+                    "page"
+                ) is not None:
+                    title += (
+                        f" - Page "
+                        f"{source['page']}"
                     )
-                with st.expander("View generated SQL"):
-                    st.code(message["sql"], language="sql")
 
-                with st.expander("View query result"):
-                    result_records = message.get("result_records", [])
-                    if result_records:
-                        st.dataframe(
-                            pd.DataFrame(result_records),
-                            use_container_width=True,
-                            hide_index=True,
-                        )
-                    else:
-                        st.info("No matching data was found.")
+                st.markdown(
+                    f"**{title}**"
+                )
+
+                st.caption(
+                    "Similarity score: "
+                    f"{source['score']:.4f}"
+                )
+
+                st.write(
+                    source["text"]
+                )
+
+                st.divider()
+
+
+for message in st.session_state.unified_chat_history:
+    with st.chat_message(
+        message["role"]
+    ):
+        if message["role"] == "user":
+            st.write(
+                message["content"]
+            )
+        else:
+            display_assistant_message(
+                message
+            )
+
+
+st.markdown("#### 💡 Recommended Questions")
+
+example_questions = [
+    "哪个设备的异常率最高？",
+    "最近30天每天的平均重量偏差是多少？",
+    "E102报警应该怎么处理？",
+    "连续三次UNDER应该怎么处理？",
+]
+
+example_columns = st.columns(2)
+
+for index, example_question in enumerate(example_questions):
+    with example_columns[index % 2]:
+        if st.button(
+            example_question,
+            key=f"example_question_{index}",
+            use_container_width=True,
+        ):
+            st.session_state.pending_question = example_question
 
 user_question = st.chat_input(
-    "Example: Which equipment has the highest abnormal rate?"
+    "Ask about production data, alarms or quality procedures..."
 )
 
+if not user_question:
+    user_question = st.session_state.pop(
+        "pending_question",
+        None,
+    )
+
 if user_question:
-    st.session_state.chat_history.append(
-        {"role": "user", "content": user_question}
+    st.session_state.unified_chat_history.append(
+        {
+            "role": "user",
+            "content": user_question,
+        }
     )
 
     with st.chat_message("user"):
@@ -551,132 +652,71 @@ if user_question:
     with st.chat_message("assistant"):
         try:
             with st.spinner(
-                "Querying and analyzing manufacturing data..."
+                "Analyzing your question..."
             ):
-                (
-                    generated_sql,
-                    query_result,
-                    analysis,
-                    chart_result,
-                ) = analyze_database_question(
-                    user_question
-                )
-
-            st.markdown(analysis)
-            if chart_result.figure is not None:
-                st.plotly_chart(
-                    chart_result.figure,
-                    use_container_width=True,
-                )
-            with st.expander("View generated SQL"):
-                st.code(generated_sql, language="sql")
-
-            with st.expander("View query result"):
-                if query_result.empty:
-                    st.info("No matching data was found.")
-                else:
-                    st.dataframe(
-                        query_result,
-                        use_container_width=True,
-                        hide_index=True,
-                    )
-
-            st.session_state.chat_history.append(
-                {
-                    "role": "assistant",
-                    "analysis": analysis,
-                    "sql": generated_sql,
-                    "result_records": (
-                        query_result
-                        .head(200)
-                        .to_dict(
-                            orient="records"
-                        )
-                    ),
-                    "question": user_question,
-                }
-            )
-
-        except SQLValidationError as exc:
-            st.error(f"SQL safety validation failed: {exc}")
-
-        except Exception as exc:
-            st.error(f"Unable to process the question: {exc}")
-
-st.divider()
-
-st.subheader("Manufacturing Knowledge Assistant")
-
-st.caption(
-    "Ask questions about equipment manuals, "
-    "quality procedures and alarm handling."
-)
-
-knowledge_question = st.text_input(
-    "Knowledge question",
-    placeholder=(
-        "Example: What does alarm E102 mean?"
-    ),
-    key="knowledge_question",
-)
-
-if st.button(
-    "Search Knowledge Base",
-    use_container_width=True,
-):
-    if not knowledge_question.strip():
-        st.warning(
-            "Please enter a question."
-        )
-
-    else:
-        try:
-            with st.spinner(
-                "Searching manufacturing documents..."
-            ):
-                knowledge_result = (
-                    answer_knowledge_question(
-                        knowledge_question
+                response = (
+                    ask_unified_assistant(
+                        user_question
                     )
                 )
 
-            st.markdown(
-                knowledge_result.answer
+            source_records = []
+
+            if response.sources:
+                source_records = [
+                    {
+                        "source": source.source,
+                        "page": source.page,
+                        "score": source.score,
+                        "text": source.text,
+                    }
+                    for source in response.sources
+                ]
+
+            result_records = []
+
+            if (
+                response.result_df
+                is not None
+                and not response.result_df.empty
+            ):
+                result_records = (
+                    response.result_df
+                    .head(200)
+                    .to_dict(
+                        orient="records"
+                    )
+                )
+
+            assistant_message = {
+                "role": "assistant",
+                "answer": response.answer,
+                "route": response.route.intent,
+                "confidence": (
+                    response.route.confidence
+                ),
+                "sql": response.sql,
+                "result_records": (
+                    result_records
+                ),
+                "sources": source_records,
+                "chart_result": (
+                    response.chart_result
+                ),
+            }
+
+            display_assistant_message(
+                assistant_message
             )
 
-            if knowledge_result.sources:
-                with st.expander(
-                    "Retrieved Sources"
-                ):
-                    for index, source in enumerate(
-                        knowledge_result.sources,
-                        start=1,
-                    ):
-                        source_title = (
-                            f"Source {index}: "
-                            f"{source.source}"
-                        )
-
-                        if source.page is not None:
-                            source_title += (
-                                f" - Page {source.page}"
-                            )
-
-                        st.markdown(
-                            f"**{source_title}**"
-                        )
-
-                        st.caption(
-                            f"Similarity score: "
-                            f"{source.score:.4f}"
-                        )
-
-                        st.write(source.text)
-
-                        st.divider()
+            st.session_state.unified_chat_history.append(
+                assistant_message
+            )
 
         except Exception as exc:
-            st.error(
-                "Unable to search the knowledge base: "
+            error_message = (
+                "Unable to process the question: "
                 f"{exc}"
             )
+
+            st.error(error_message)
