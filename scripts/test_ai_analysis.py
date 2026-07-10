@@ -24,10 +24,13 @@ def main() -> None:
             continue
 
         try:
-            sql, result_df, analysis = (
-                analyze_database_question(
-                    question
-                )
+            (
+                sql,
+                result_df,
+                analysis,
+                chart_result,
+            ) = analyze_database_question(
+                question
             )
 
             print("\nGenerated SQL:")
@@ -46,7 +49,12 @@ def main() -> None:
 
             print("\nAI analysis:")
             print(analysis)
+            print("\nVisualization:")
+            print(f"Chart type: {chart_result.chart_type}")
+            print(f"Reason: {chart_result.reason}")
 
+            if chart_result.figure:
+                chart_result.figure.show()
         except SQLValidationError as exc:
             print(
                 f"\nSQL safety validation failed: {exc}"

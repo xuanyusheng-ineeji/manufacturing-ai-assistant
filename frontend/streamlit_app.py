@@ -8,7 +8,9 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
-
+from app.services.visualization_service import (
+    generate_visualization,
+)
 from app.services.ai_query_service import (
     analyze_database_question,
 )
@@ -495,20 +497,42 @@ for message in st.session_state.chat_history:
             st.write(message["content"])
         else:
             st.markdown(message["analysis"])
+            result_records = message.get(
+                "result_records",
+                [],
+            )
 
-            with st.expander("View generated SQL"):
-                st.code(message["sql"], language="sql")
+            if result_records:
+                historical_result_df = pd.DataFrame(
+                    result_records
+                )
 
-            with st.expander("View query result"):
-                result_records = message.get("result_records", [])
-                if result_records:
-                    st.dataframe(
-                        pd.DataFrame(result_records),
+                historical_chart = generate_visualization(
+                    dataframe=historical_result_df,
+                    question=message.get(
+                        "question",
+                        "",
+                    ),
+                )
+
+                if historical_chart.figure is not None:
+                    st.plotly_chart(
+                        historical_chart.figure,
                         use_container_width=True,
-                        hide_index=True,
                     )
-                else:
-                    st.info("No matching data was found.")
+                with st.expander("View generated SQL"):
+                    st.code(message["sql"], language="sql")
+
+                with st.expander("View query result"):
+                    result_records = message.get("result_records", [])
+                    if result_records:
+                        st.dataframe(
+                            pd.DataFrame(result_records),
+                            use_container_width=True,
+                            hide_index=True,
+                        )
+                    else:
+                        st.info("No matching data was found.")
 
 user_question = st.chat_input(
     "Example: Which equipment has the highest abnormal rate?"
@@ -531,10 +555,17 @@ if user_question:
                     generated_sql,
                     query_result,
                     analysis,
-                ) = analyze_database_question(user_question)
+                    chart_result,
+                ) = analyze_database_question(
+                    user_question
+                )
 
             st.markdown(analysis)
-
+            if chart_result.figure is not None:
+                st.plotly_chart(
+                    chart_result.figure,
+                    use_container_width=True,
+                )
             with st.expander("View generated SQL"):
                 st.code(generated_sql, language="sql")
 
@@ -554,8 +585,13 @@ if user_question:
                     "analysis": analysis,
                     "sql": generated_sql,
                     "result_records": (
-                        query_result.head(200).to_dict(orient="records")
+                        query_result
+                        .head(200)
+                        .to_dict(
+                            orient="records"
+                        )
                     ),
+                    "question": user_question,
                 }
             )
 

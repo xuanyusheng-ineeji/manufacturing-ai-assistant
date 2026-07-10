@@ -3,17 +3,15 @@ import pandas as pd
 from app.database.connection import execute_query
 from app.services.analysis_service import generate_analysis
 from app.services.text_to_sql_service import generate_sql
+from app.services.visualization_service import (
+    ChartResult,
+    generate_visualization,
+)
 
 
 def ask_database(
     question: str,
 ) -> tuple[str, pd.DataFrame]:
-    """
-    Generate SQL and execute it.
-
-    This function is kept for backward compatibility.
-    """
-
     sql = generate_sql(question)
 
     result_df = execute_query(sql)
@@ -23,11 +21,12 @@ def ask_database(
 
 def analyze_database_question(
     question: str,
-) -> tuple[str, pd.DataFrame, str]:
-    """
-    Generate SQL, execute it and analyze the query result.
-    """
-
+) -> tuple[
+    str,
+    pd.DataFrame,
+    str,
+    ChartResult,
+]:
     sql = generate_sql(question)
 
     result_df = execute_query(sql)
@@ -38,4 +37,14 @@ def analyze_database_question(
         result_df=result_df,
     )
 
-    return sql, result_df, analysis
+    chart_result = generate_visualization(
+        dataframe=result_df,
+        question=question,
+    )
+
+    return (
+        sql,
+        result_df,
+        analysis,
+        chart_result,
+    )
