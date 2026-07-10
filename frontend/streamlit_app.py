@@ -17,7 +17,9 @@ from app.services.ai_query_service import (
 from app.tools.sql_validator import SQLValidationError
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
-
+from app.services.knowledge_service import (
+    answer_knowledge_question,
+)
 
 from app.services.manufacturing_service import (
     get_date_range,
@@ -600,3 +602,81 @@ if user_question:
 
         except Exception as exc:
             st.error(f"Unable to process the question: {exc}")
+
+st.divider()
+
+st.subheader("Manufacturing Knowledge Assistant")
+
+st.caption(
+    "Ask questions about equipment manuals, "
+    "quality procedures and alarm handling."
+)
+
+knowledge_question = st.text_input(
+    "Knowledge question",
+    placeholder=(
+        "Example: What does alarm E102 mean?"
+    ),
+    key="knowledge_question",
+)
+
+if st.button(
+    "Search Knowledge Base",
+    use_container_width=True,
+):
+    if not knowledge_question.strip():
+        st.warning(
+            "Please enter a question."
+        )
+
+    else:
+        try:
+            with st.spinner(
+                "Searching manufacturing documents..."
+            ):
+                knowledge_result = (
+                    answer_knowledge_question(
+                        knowledge_question
+                    )
+                )
+
+            st.markdown(
+                knowledge_result.answer
+            )
+
+            if knowledge_result.sources:
+                with st.expander(
+                    "Retrieved Sources"
+                ):
+                    for index, source in enumerate(
+                        knowledge_result.sources,
+                        start=1,
+                    ):
+                        source_title = (
+                            f"Source {index}: "
+                            f"{source.source}"
+                        )
+
+                        if source.page is not None:
+                            source_title += (
+                                f" - Page {source.page}"
+                            )
+
+                        st.markdown(
+                            f"**{source_title}**"
+                        )
+
+                        st.caption(
+                            f"Similarity score: "
+                            f"{source.score:.4f}"
+                        )
+
+                        st.write(source.text)
+
+                        st.divider()
+
+        except Exception as exc:
+            st.error(
+                "Unable to search the knowledge base: "
+                f"{exc}"
+            )

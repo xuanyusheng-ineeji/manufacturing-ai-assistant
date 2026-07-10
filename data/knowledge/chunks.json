@@ -1,0 +1,58 @@
+[
+  {
+    "chunk_id": "doc_0000_chunk_0000",
+    "source": "equipment_manual.md",
+    "page": null,
+    "chunk_index": 0,
+    "text": "# Filling Machine Equipment Manual\n## Equipment Overview\nThe filling machine automatically dispenses cream or filling material\ninto product containers.\nThe machine consists of:\n- Material tank\n- Filling nozzle\n- Pressure control valve\n- Weight sensor\n- Conveyor\n- Emergency stop switch\n- Control panel\n## Alarm E101: Material Tank Level Low\nE101 indicates that the material level in the tank is below the\nminimum operating threshold.\nRequired actions:\n1. Stop automatic filling.\n2. Check the material tank level.\n3. Confirm that the material supply valve is open.\n4. Refill the tank if necessary.\n5. Restart the equipment after confirming stable material supply.\n## Alarm E102: Filling Pressure Low\nE102 indicates that the filling pressure is below the configured\noperating range.\nPossible checks:"
+  },
+  {
+    "chunk_id": "doc_0000_chunk_0001",
+    "source": "equipment_manual.md",
+    "page": null,
+    "chunk_index": 1,
+    "text": "Filling Pressure Low\nE102 indicates that the filling pressure is below the configured\noperating range.\nPossible checks:\n1. Check the compressed air supply.\n2. Confirm that the pressure control valve is open.\n3. Inspect the filling nozzle for blockage.\n4. Check for leakage in the air or material supply line.\n5. Verify that the pressure sensor is operating correctly.\nDo not restart continuous operation until the pressure has returned\nto the normal operating range.\n## Alarm E103: Weight Sensor Communication Error\nE103 indicates that communication with the weight sensor has been\ninterrupted.\nRequired actions:\n1. Stop the conveyor.\n2. Check the weight sensor power supply.\n3. Check the communication cable.\n4. Inspect the PLC communication status.\n5. Restart the weight sensor controller."
+  },
+  {
+    "chunk_id": "doc_0000_chunk_0002",
+    "source": "equipment_manual.md",
+    "page": null,
+    "chunk_index": 2,
+    "text": "ply.\n3. Check the communication cable.\n4. Inspect the PLC communication status.\n5. Restart the weight sensor controller.\n6. Contact maintenance personnel if the alarm remains active.\n## Alarm E104: Emergency Stop Activated\nE104 means that an emergency stop switch has been pressed.\nRequired actions:\n1. Identify why the emergency stop was activated.\n2. Remove any safety hazard.\n3. Release the emergency stop switch.\n4. Perform the equipment reset procedure.\n5. Restart only after confirming that the work area is safe.\n## Daily Inspection\nBefore starting production, the operator must confirm:\n- No material leakage\n- No nozzle blockage\n- Normal compressed air pressure\n- Normal weight sensor communication\n- Conveyor operates smoothly\n- Emergency stop switches operate correctly"
+  },
+  {
+    "chunk_id": "doc_0000_chunk_0003",
+    "source": "equipment_manual.md",
+    "page": null,
+    "chunk_index": 3,
+    "text": "r pressure\n- Normal weight sensor communication\n- Conveyor operates smoothly\n- Emergency stop switches operate correctly\n- Guards and covers are installed\n- No active alarm remains on the control panel\n## Calibration\nThe weight sensor must be calibrated:\n- Before the first production run after maintenance\n- After replacing the weight sensor\n- When repeated weight deviation is detected\n- According to the scheduled monthly calibration plan\nCalibration procedure:\n1. Stop the conveyor.\n2. Clean the weighing platform.\n3. Remove all products from the platform.\n4. Perform zero calibration.\n5. Place the certified reference weight on the platform.\n6. Perform span calibration.\n7. Remove the reference weight.\n8. Confirm that the displayed value returns to zero.\n9. Record the calibration result."
+  },
+  {
+    "chunk_id": "doc_0001_chunk_0000",
+    "source": "quality_sop.md",
+    "page": null,
+    "chunk_index": 0,
+    "text": "# Filling Weight Quality Control SOP\n## Purpose\nThis procedure defines the actions required to monitor and control\nproduct filling weight during production.\n## Weight Classification\nEach measurement is classified as:\n- OK: Weight is between the lower and upper limits.\n- UNDER: Weight is below the lower limit.\n- OVER: Weight is above the upper limit.\nUNDER products must be separated and cannot be released without\nadditional inspection.\nOVER products may cause material loss and must be monitored even when\nthe product can still be released.\n## Start-up Inspection\nBefore mass production:\n1. Confirm the product code.\n2. Confirm the standard filling weight.\n3. Confirm the lower and upper limits.\n4. Confirm the correct equipment setting.\n5. Measure at least five test products."
+  },
+  {
+    "chunk_id": "doc_0001_chunk_0001",
+    "source": "quality_sop.md",
+    "page": null,
+    "chunk_index": 1,
+    "text": "3. Confirm the lower and upper limits.\n4. Confirm the correct equipment setting.\n5. Measure at least five test products.\n6. Start mass production only when all test results are acceptable.\n## Continuous UNDER Results\nWhen three consecutive UNDER results occur:\n1. Stop the filling operation.\n2. Separate products produced after the previous normal result.\n3. Check the filling nozzle for blockage.\n4. Check material supply pressure.\n5. Check whether the filling setting has changed.\n6. Check the weight sensor calibration.\n7. Perform five test fillings before restarting production.\n8. Record the corrective action.\n## Continuous OVER Results\nWhen three consecutive OVER results occur:\n1. Check the filling quantity setting.\n2. Check whether filling pressure is above the normal range."
+  },
+  {
+    "chunk_id": "doc_0001_chunk_0002",
+    "source": "quality_sop.md",
+    "page": null,
+    "chunk_index": 2,
+    "text": "OVER results occur:\n1. Check the filling quantity setting.\n2. Check whether filling pressure is above the normal range.\n3. Check whether the nozzle closing response is delayed.\n4. Inspect the product for excessive material.\n5. Adjust the filling setting.\n6. Perform five test fillings.\n7. Record the material loss and corrective action.\n## Abnormal Rate Management\nThe abnormal rate is calculated as:\nAbnormal rate = abnormal measurements / total measurements × 100\nIf the abnormal rate exceeds 5%:\n1. Analyze the results by equipment.\n2. Analyze the results by product.\n3. Separate OVER and UNDER cases.\n4. Review whether the abnormal results are concentrated in a\nspecific production period.\n5. Confirm equipment calibration history.\n6. Escalate the issue to the production supervisor."
+  },
+  {
+    "chunk_id": "doc_0001_chunk_0003",
+    "source": "quality_sop.md",
+    "page": null,
+    "chunk_index": 3,
+    "text": "pecific production period.\n5. Confirm equipment calibration history.\n6. Escalate the issue to the production supervisor.\n## Product Changeover\nDuring product changeover:\n1. Stop material supply.\n2. Remove remaining material.\n3. Clean the tank and filling line.\n4. Confirm that no previous product remains.\n5. Load the new product setting.\n6. Confirm the standard weight and limits.\n7. Perform test filling.\n8. Start production after quality approval.\n## Record Management\nThe following information must be recorded:\n- Production order\n- Product code\n- Equipment code\n- Inspection time\n- Measured weight\n- Result classification\n- Operator\n- Corrective action\n- Calibration result"
+  }
+]
