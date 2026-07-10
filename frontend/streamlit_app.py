@@ -2,12 +2,15 @@ from pathlib import Path
 import sys
 from datetime import datetime
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-
+from app.services.ai_query_service import ask_database
+from app.tools.sql_validator import SQLValidationError
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
@@ -462,3 +465,58 @@ with st.expander("Product Summary Data"):
         use_container_width=True,
         hide_index=True,
     )
+
+st.divider()
+
+st.subheader("AI Database Assistant")
+
+st.caption(
+    "Ask questions about products, equipment, orders "
+    "and weight measurements."
+)
+
+user_question = st.chat_input(
+    "Example: Which equipment has the highest abnormal rate?"
+)
+
+if user_question:
+    with st.chat_message("user"):
+        st.write(user_question)
+
+    with st.chat_message("assistant"):
+        try:
+            with st.spinner(
+                "Generating and executing SQL..."
+            ):
+                generated_sql, query_result = (
+                    ask_database(user_question)
+                )
+
+            st.write("Query completed.")
+
+            with st.expander("Generated SQL"):
+                st.code(
+                    generated_sql,
+                    language="sql",
+                )
+
+            if query_result.empty:
+                st.info(
+                    "No matching data was found."
+                )
+            else:
+                st.dataframe(
+                    query_result,
+                    use_container_width=True,
+                    hide_index=True,
+                )
+
+        except SQLValidationError as exc:
+            st.error(
+                f"SQL safety validation failed: {exc}"
+            )
+
+        except Exception as exc:
+            st.error(
+                f"Unable to process the question: {exc}"
+            )
