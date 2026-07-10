@@ -1,0 +1,5 @@
+﻿equipment_cd,equipment_name,line_name,status,installation_date
+EQ001,Filling Machine 1,Line A,ACTIVE,2021-03-15
+EQ002,Filling Machine 2,Line A,ACTIVE,2022-07-01
+EQ003,Weight Checker 1,Line B,ACTIVE,2020-11-20
+EQ004,Weight Checker 2,Line B,MAINTENANCE,2019-05-10
