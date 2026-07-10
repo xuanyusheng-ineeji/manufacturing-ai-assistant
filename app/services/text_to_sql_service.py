@@ -32,7 +32,11 @@ Rules:
 """
 
 
-def get_openai_client() -> OpenAI:
+def get_llm_model() -> str:
+    return os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+
+
+def get_llm_client() -> OpenAI:
     api_key = os.getenv("DEEPSEEK_API_KEY")
     base_url = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
 
@@ -62,15 +66,10 @@ User question:
 Generate one SQLite SELECT query.
 """
 
-    client = get_openai_client()
-
-    model = os.getenv(
-        "DEEPSEEK_MODEL",
-        "deepseek-chat",
-    )
+    client = get_llm_client()
 
     response = client.chat.completions.create(
-        model=model,
+        model=get_llm_model(),
         messages=[
             {
                 "role": "system",

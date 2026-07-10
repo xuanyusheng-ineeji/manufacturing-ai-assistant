@@ -9,7 +9,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from app.services.ai_query_service import ask_database
+from app.services.ai_query_service import (
+    analyze_database_question,
+)
 from app.tools.sql_validator import SQLValidationError
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
@@ -120,6 +122,15 @@ with st.sidebar:
         use_container_width=True,
     ):
         st.cache_data.clear()
+        st.rerun()
+
+    st.divider()
+
+    if st.button(
+        "Clear AI Chat",
+        use_container_width=True,
+    ):
+        st.session_state.chat_history = []
         st.rerun()
 
 
@@ -475,48 +486,81 @@ st.caption(
     "and weight measurements."
 )
 
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+for message in st.session_state.chat_history:
+    with st.chat_message(message["role"]):
+        if message["role"] == "user":
+            st.write(message["content"])
+        else:
+            st.markdown(message["analysis"])
+
+            with st.expander("View generated SQL"):
+                st.code(message["sql"], language="sql")
+
+            with st.expander("View query result"):
+                result_records = message.get("result_records", [])
+                if result_records:
+                    st.dataframe(
+                        pd.DataFrame(result_records),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+                else:
+                    st.info("No matching data was found.")
+
 user_question = st.chat_input(
     "Example: Which equipment has the highest abnormal rate?"
 )
 
 if user_question:
+    st.session_state.chat_history.append(
+        {"role": "user", "content": user_question}
+    )
+
     with st.chat_message("user"):
         st.write(user_question)
 
     with st.chat_message("assistant"):
         try:
             with st.spinner(
-                "Generating and executing SQL..."
+                "Querying and analyzing manufacturing data..."
             ):
-                generated_sql, query_result = (
-                    ask_database(user_question)
-                )
-
-            st.write("Query completed.")
-
-            with st.expander("Generated SQL"):
-                st.code(
+                (
                     generated_sql,
-                    language="sql",
-                )
-
-            if query_result.empty:
-                st.info(
-                    "No matching data was found."
-                )
-            else:
-                st.dataframe(
                     query_result,
-                    use_container_width=True,
-                    hide_index=True,
-                )
+                    analysis,
+                ) = analyze_database_question(user_question)
+
+            st.markdown(analysis)
+
+            with st.expander("View generated SQL"):
+                st.code(generated_sql, language="sql")
+
+            with st.expander("View query result"):
+                if query_result.empty:
+                    st.info("No matching data was found.")
+                else:
+                    st.dataframe(
+                        query_result,
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+
+            st.session_state.chat_history.append(
+                {
+                    "role": "assistant",
+                    "analysis": analysis,
+                    "sql": generated_sql,
+                    "result_records": (
+                        query_result.head(200).to_dict(orient="records")
+                    ),
+                }
+            )
 
         except SQLValidationError as exc:
-            st.error(
-                f"SQL safety validation failed: {exc}"
-            )
+            st.error(f"SQL safety validation failed: {exc}")
 
         except Exception as exc:
-            st.error(
-                f"Unable to process the question: {exc}"
-            )
+            st.error(f"Unable to process the question: {exc}")
