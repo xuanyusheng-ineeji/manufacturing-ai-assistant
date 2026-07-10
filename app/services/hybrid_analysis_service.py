@@ -18,7 +18,10 @@ from app.services.text_to_sql_service import (
 from app.services.visualization_service import (
     ChartResult,
 )
-
+from app.services.query_decomposition_service import (
+    DecomposedQuery,
+    decompose_hybrid_question,
+)
 
 HYBRID_SYSTEM_PROMPT = """
 You are a careful manufacturing operations analyst.
@@ -60,6 +63,7 @@ class HybridAnalysisResult:
     result_df: pd.DataFrame
     chart_result: ChartResult
     sources: list[RetrievalResult]
+    decomposition: DecomposedQuery
 
 
 def build_source_context(
@@ -105,17 +109,21 @@ def dataframe_to_text(
 def analyze_hybrid_question(
     question: str,
 ) -> HybridAnalysisResult:
+    decomposition = decompose_hybrid_question(
+        question
+    )
+
     (
         sql,
         result_df,
         database_analysis,
         chart_result,
     ) = analyze_database_question(
-        question
+        decomposition.database_question
     )
 
     knowledge_result = answer_knowledge_question(
-        question
+        decomposition.knowledge_question
     )
 
     source_context = build_source_context(
@@ -127,9 +135,17 @@ def analyze_hybrid_question(
     )
 
     user_prompt = f"""
-Original user question:
+Original hybrid question:
 
 {question}
+
+Decomposed database question:
+
+{decomposition.database_question}
+
+Decomposed knowledge question:
+
+{decomposition.knowledge_question}
 
 Database analysis:
 
@@ -151,7 +167,7 @@ Retrieved document context:
 
 {source_context}
 
-Create one integrated response.
+Create one integrated response that answers the original hybrid question.
 """
 
     client = get_llm_client()
@@ -192,4 +208,5 @@ Create one integrated response.
         result_df=result_df,
         chart_result=chart_result,
         sources=knowledge_result.sources,
+        decomposition=decomposition,
     )

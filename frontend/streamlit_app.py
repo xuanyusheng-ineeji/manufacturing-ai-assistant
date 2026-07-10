@@ -508,7 +508,33 @@ def display_assistant_message(
         f"Route: {route} | "
         f"Confidence: {confidence:.2f}"
     )
+    database_question = message.get(
+        "database_question"
+    )
 
+    knowledge_question = message.get(
+        "knowledge_question"
+    )
+
+    if database_question or knowledge_question:
+        with st.expander(
+            "View query decomposition"
+        ):
+            if database_question:
+                st.markdown(
+                    "**Database question**"
+                )
+                st.write(
+                    database_question
+                )
+
+            if knowledge_question:
+                st.markdown(
+                    "**Knowledge question**"
+                )
+                st.write(
+                    knowledge_question
+                )
     chart_result = message.get(
         "chart_result"
     )
@@ -687,21 +713,20 @@ if user_question:
                         orient="records"
                     )
                 )
-
             assistant_message = {
                 "role": "assistant",
                 "answer": response.answer,
                 "route": response.route.intent,
-                "confidence": (
-                    response.route.confidence
-                ),
+                "confidence": response.route.confidence,
                 "sql": response.sql,
-                "result_records": (
-                    result_records
-                ),
+                "result_records": result_records,
                 "sources": source_records,
-                "chart_result": (
-                    response.chart_result
+                "chart_result": response.chart_result,
+                "database_question": (
+                    response.database_question
+                ),
+                "knowledge_question": (
+                    response.knowledge_question
                 ),
             }
 

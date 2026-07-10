@@ -31,7 +31,8 @@ class UnifiedAssistantResponse:
     result_df: pd.DataFrame | None = None
     chart_result: ChartResult | None = None
     sources: list[RetrievalResult] | None = None
-
+    database_question: str | None = None
+    knowledge_question: str | None = None
 
 def answer_general_question(
     question: str,
@@ -100,6 +101,16 @@ def ask_unified_assistant(
             result_df=hybrid_result.result_df,
             chart_result=hybrid_result.chart_result,
             sources=hybrid_result.sources,
+            database_question=(
+                hybrid_result
+                .decomposition
+                .database_question
+            ),
+            knowledge_question=(
+                hybrid_result
+                .decomposition
+                .knowledge_question
+            ),
         )
     if route.intent == "knowledge":
         knowledge_result = (

@@ -12,7 +12,18 @@ def main() -> None:
     result = analyze_hybrid_question(
         question
     )
+    print("\nOriginal question:")
+    print(question)
 
+    print("\nDatabase question:")
+    print(
+        result.decomposition.database_question
+    )
+
+    print("\nKnowledge question:")
+    print(
+        result.decomposition.knowledge_question
+    )
     print("\nAnswer:")
     print(result.answer)
 
