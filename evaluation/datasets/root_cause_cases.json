@@ -1,0 +1,14 @@
+[
+  {
+    "expected_sections": [
+      "分析对象",
+      "核心数据发现",
+      "建议"
+    ],
+    "required_dataframes": [
+      "equipment_ranking_df",
+      "abnormal_type_df",
+      "product_contribution_df"
+    ]
+  }
+]

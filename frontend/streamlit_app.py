@@ -12,7 +12,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 from app.services.unified_assistant_service import (
     ask_unified_assistant,
 )
-
+from app.services.root_cause_service import (
+    analyze_root_cause,
+)
 from app.services.manufacturing_service import (
     get_date_range,
     get_items,
@@ -472,7 +474,188 @@ with st.expander("Product Summary Data"):
         use_container_width=True,
         hide_index=True,
     )
+st.divider()
 
+st.subheader("Root Cause Analysis")
+
+st.caption(
+    "Automatically identify the equipment with the highest "
+    "abnormal rate and analyze abnormal patterns."
+)
+
+if st.button(
+    "Run Root Cause Analysis",
+    use_container_width=True,
+):
+    try:
+        with st.spinner(
+            "Analyzing equipment, products, time periods "
+            "and quality procedures..."
+        ):
+            root_cause_result = (
+                analyze_root_cause()
+            )
+
+        st.markdown(
+            root_cause_result.answer
+        )
+
+        st.info(
+            "Analysis target: "
+            f"{root_cause_result.target_equipment_name} "
+            f"({root_cause_result.target_equipment_cd})"
+        )
+
+        chart_columns = st.columns(2)
+
+        with chart_columns[0]:
+            if (
+                not root_cause_result
+                .abnormal_type_df
+                .empty
+            ):
+                figure = px.pie(
+                    root_cause_result.abnormal_type_df,
+                    names="result_flag",
+                    values="abnormal_count",
+                    title="Abnormal Type Distribution",
+                )
+
+                st.plotly_chart(
+                    figure,
+                    use_container_width=True,
+                )
+
+        with chart_columns[1]:
+            if (
+                not root_cause_result
+                .product_contribution_df
+                .empty
+            ):
+                figure = px.bar(
+                    root_cause_result
+                    .product_contribution_df,
+                    x="abnormal_count",
+                    y="item_name",
+                    orientation="h",
+                    title="Product Abnormal Contribution",
+                )
+
+                figure.update_layout(
+                    yaxis={
+                        "categoryorder": "total ascending"
+                    }
+                )
+
+                st.plotly_chart(
+                    figure,
+                    use_container_width=True,
+                )
+
+        chart_columns_second = st.columns(2)
+
+        with chart_columns_second[0]:
+            if (
+                not root_cause_result
+                .hourly_contribution_df
+                .empty
+            ):
+                figure = px.bar(
+                    root_cause_result
+                    .hourly_contribution_df,
+                    x="production_hour",
+                    y="abnormal_rate",
+                    title="Hourly Abnormal Rate",
+                )
+
+                st.plotly_chart(
+                    figure,
+                    use_container_width=True,
+                )
+
+        with chart_columns_second[1]:
+            if (
+                not root_cause_result
+                .trend_comparison_df
+                .empty
+            ):
+                figure = px.bar(
+                    root_cause_result
+                    .trend_comparison_df,
+                    x="period_name",
+                    y="abnormal_rate",
+                    title="Recent Trend Comparison",
+                )
+
+                st.plotly_chart(
+                    figure,
+                    use_container_width=True,
+                )
+
+        with st.expander(
+            "View root-cause evidence"
+        ):
+            st.markdown(
+                "#### Equipment Ranking"
+            )
+
+            st.dataframe(
+                root_cause_result
+                .equipment_ranking_df,
+                use_container_width=True,
+                hide_index=True,
+            )
+
+            st.markdown(
+                "#### Abnormal Type Distribution"
+            )
+
+            st.dataframe(
+                root_cause_result
+                .abnormal_type_df,
+                use_container_width=True,
+                hide_index=True,
+            )
+
+            st.markdown(
+                "#### Product Contribution"
+            )
+
+            st.dataframe(
+                root_cause_result
+                .product_contribution_df,
+                use_container_width=True,
+                hide_index=True,
+            )
+
+            st.markdown(
+                "#### Daily Contribution"
+            )
+
+            st.dataframe(
+                root_cause_result
+                .daily_contribution_df,
+                use_container_width=True,
+                hide_index=True,
+            )
+
+            st.markdown(
+                "#### Hourly Contribution"
+            )
+
+            st.dataframe(
+                root_cause_result
+                .hourly_contribution_df,
+                use_container_width=True,
+                hide_index=True,
+            )
+            
+    except Exception as exc:
+        st.error(
+            "Unable to run root-cause analysis: "
+            f"{exc}"
+        )
+        
 st.divider()
 
 st.subheader("Manufacturing AI Assistant")
