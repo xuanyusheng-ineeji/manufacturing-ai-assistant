@@ -1,0 +1,42 @@
+[
+  {
+    "question": "E102报警是什么意思？",
+    "expected_sources": [
+      "equipment_manual.md"
+    ],
+    "expected_keywords": [
+      "pressure",
+      "E102"
+    ]
+  },
+  {
+    "question": "连续三次UNDER应该怎么处理？",
+    "expected_sources": [
+      "quality_sop.md"
+    ],
+    "expected_keywords": [
+      "UNDER",
+      "nozzle"
+    ]
+  },
+  {
+    "question": "产品切换时应该做什么？",
+    "expected_sources": [
+      "quality_sop.md"
+    ],
+    "expected_keywords": [
+      "changeover",
+      "clean"
+    ]
+  },
+  {
+    "question": "什么时候需要校准重量传感器？",
+    "expected_sources": [
+      "equipment_manual.md"
+    ],
+    "expected_keywords": [
+      "calibration",
+      "weight sensor"
+    ]
+  }
+]

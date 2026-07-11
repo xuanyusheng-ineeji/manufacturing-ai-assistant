@@ -1,0 +1,66 @@
+[
+  {
+    "question": "每个产品有多少条称重记录？",
+    "required_tables": [
+      "weight_rawdata"
+    ],
+    "required_terms": [
+      "COUNT",
+      "GROUP BY",
+      "item_cd"
+    ],
+    "forbidden_terms": [
+      "DELETE",
+      "UPDATE",
+      "DROP"
+    ]
+  },
+  {
+    "question": "哪个设备的异常率最高？",
+    "required_tables": [
+      "weight_rawdata"
+    ],
+    "required_terms": [
+      "result_flag",
+      "GROUP BY",
+      "ORDER BY"
+    ],
+    "forbidden_terms": [
+      "DELETE",
+      "UPDATE",
+      "DROP"
+    ]
+  },
+  {
+    "question": "统计每个产品的平均重量偏差。",
+    "required_tables": [
+      "weight_rawdata"
+    ],
+    "required_terms": [
+      "AVG",
+      "weight_diff",
+      "GROUP BY"
+    ],
+    "forbidden_terms": [
+      "DELETE",
+      "UPDATE",
+      "DROP"
+    ]
+  },
+  {
+    "question": "最近30天每天的异常率是多少？",
+    "required_tables": [
+      "weight_rawdata"
+    ],
+    "required_terms": [
+      "DATE",
+      "result_flag",
+      "GROUP BY"
+    ],
+    "forbidden_terms": [
+      "DELETE",
+      "UPDATE",
+      "DROP"
+    ]
+  }
+]

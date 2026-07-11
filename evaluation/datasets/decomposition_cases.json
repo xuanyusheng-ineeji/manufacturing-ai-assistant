@@ -1,0 +1,35 @@
+[
+  {
+    "question": "哪个设备的异常率最高，根据SOP应该检查什么？",
+    "database_keywords": [
+      "设备",
+      "异常率"
+    ],
+    "knowledge_keywords": [
+      "检查"
+    ]
+  },
+  {
+    "question": "哪个产品的UNDER数量最多，连续UNDER应该怎么处理？",
+    "database_keywords": [
+      "产品",
+      "UNDER",
+      "最多"
+    ],
+    "knowledge_keywords": [
+      "连续",
+      "处理"
+    ]
+  },
+  {
+    "question": "最近30天异常率最高的设备是哪台，是否需要进行校准？",
+    "database_keywords": [
+      "最近30天",
+      "异常率",
+      "设备"
+    ],
+    "knowledge_keywords": [
+      "校准"
+    ]
+  }
+]

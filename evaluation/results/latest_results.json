@@ -1,0 +1,178 @@
+[
+  {
+    "category": "intent",
+    "question": "哪个设备的异常率最高？",
+    "passed": true,
+    "expected": "database",
+    "actual": "database",
+    "error": null
+  },
+  {
+    "category": "intent",
+    "question": "最近30天每天的平均重量偏差是多少？",
+    "passed": true,
+    "expected": "database",
+    "actual": "database",
+    "error": null
+  },
+  {
+    "category": "intent",
+    "question": "每个产品的超重数量分别是多少？",
+    "passed": true,
+    "expected": "database",
+    "actual": "database",
+    "error": null
+  },
+  {
+    "category": "intent",
+    "question": "E102报警是什么意思？",
+    "passed": true,
+    "expected": "knowledge",
+    "actual": "knowledge",
+    "error": null
+  },
+  {
+    "category": "intent",
+    "question": "连续三次UNDER应该怎么处理？",
+    "passed": true,
+    "expected": "knowledge",
+    "actual": "knowledge",
+    "error": null
+  },
+  {
+    "category": "intent",
+    "question": "重量传感器什么时候需要校准？",
+    "passed": true,
+    "expected": "knowledge",
+    "actual": "knowledge",
+    "error": null
+  },
+  {
+    "category": "intent",
+    "question": "哪个设备异常率最高，根据SOP应该检查什么？",
+    "passed": true,
+    "expected": "hybrid",
+    "actual": "hybrid",
+    "error": null
+  },
+  {
+    "category": "intent",
+    "question": "找出UNDER最多的产品并说明处理流程。",
+    "passed": true,
+    "expected": "hybrid",
+    "actual": "hybrid",
+    "error": null
+  },
+  {
+    "category": "intent",
+    "question": "目前哪台设备最需要校准？",
+    "passed": true,
+    "expected": "hybrid",
+    "actual": "hybrid",
+    "error": null
+  },
+  {
+    "category": "intent",
+    "question": "你好",
+    "passed": true,
+    "expected": "general",
+    "actual": "general",
+    "error": null
+  },
+  {
+    "category": "intent",
+    "question": "谢谢",
+    "passed": true,
+    "expected": "general",
+    "actual": "general",
+    "error": null
+  },
+  {
+    "category": "sql",
+    "question": "每个产品有多少条称重记录？",
+    "passed": true,
+    "expected": "Required tables and SQL terms, safe and executable",
+    "actual": "SELECT mst_item.item_cd, mst_item.item_name, COUNT(weight_rawdata.measurement_id) AS 称重记录数\nFROM mst_item\nLEFT JOIN weight_rawdata ON mst_item.item_cd = weight_rawdata.item_cd\nGROUP BY mst_item.item_cd, mst_item.item_name\nLIMIT 200;",
+    "error": null
+  },
+  {
+    "category": "sql",
+    "question": "哪个设备的异常率最高？",
+    "passed": true,
+    "expected": "Required tables and SQL terms, safe and executable",
+    "actual": "SELECT m.equipment_name, \n       COUNT(w.measurement_id) AS total_count,\n       SUM(CASE WHEN w.result_flag != 'OK' THEN 1 ELSE 0 END) AS abnormal_count,\n       ROUND(100.0 * SUM(CASE WHEN w.result_flag != 'OK' THEN 1 ELSE 0 END) / COUNT(w.measurement_id), 2) AS abnormal_rate\nFROM weight_rawdata w\nJOIN mst_equipment m ON w.equipment_cd = m.equipment_cd\nGROUP BY m.equipment_name\nORDER BY abnormal_rate DESC\nLIMIT 1;",
+    "error": null
+  },
+  {
+    "category": "sql",
+    "question": "统计每个产品的平均重量偏差。",
+    "passed": true,
+    "expected": "Required tables and SQL terms, safe and executable",
+    "actual": "SELECT \n    item_cd,\n    AVG(weight_diff) AS avg_weight_diff\nFROM weight_rawdata\nGROUP BY item_cd\nLIMIT 200;",
+    "error": null
+  },
+  {
+    "category": "sql",
+    "question": "最近30天每天的异常率是多少？",
+    "passed": true,
+    "expected": "Required tables and SQL terms, safe and executable",
+    "actual": "SELECT DATE(event_time) AS day,\n       ROUND(100.0 * SUM(CASE WHEN result_flag != 'OK' THEN 1 ELSE 0 END) / COUNT(*), 2) AS abnormal_rate\nFROM weight_rawdata\nWHERE event_time >= DATE('now', '-30 days')\nGROUP BY DATE(event_time)\nORDER BY day\nLIMIT 200;",
+    "error": null
+  },
+  {
+    "category": "rag",
+    "question": "E102报警是什么意思？",
+    "passed": true,
+    "expected": "Sources=['equipment_manual.md'], keywords=['pressure', 'E102']",
+    "actual": "equipment_manual.md",
+    "error": null
+  },
+  {
+    "category": "rag",
+    "question": "连续三次UNDER应该怎么处理？",
+    "passed": true,
+    "expected": "Sources=['quality_sop.md'], keywords=['UNDER', 'nozzle']",
+    "actual": "quality_sop.md",
+    "error": null
+  },
+  {
+    "category": "rag",
+    "question": "产品切换时应该做什么？",
+    "passed": true,
+    "expected": "Sources=['quality_sop.md'], keywords=['changeover', 'clean']",
+    "actual": "equipment_manual.md, quality_sop.md",
+    "error": null
+  },
+  {
+    "category": "rag",
+    "question": "什么时候需要校准重量传感器？",
+    "passed": true,
+    "expected": "Sources=['equipment_manual.md'], keywords=['calibration', 'weight sensor']",
+    "actual": "equipment_manual.md, quality_sop.md",
+    "error": null
+  },
+  {
+    "category": "decomposition",
+    "question": "哪个设备的异常率最高，根据SOP应该检查什么？",
+    "passed": true,
+    "expected": "Independent database and knowledge questions",
+    "actual": "DB: 哪个设备的异常率最高？\nKnowledge: 根据SOP，对于异常率最高的设备应该检查什么？",
+    "error": null
+  },
+  {
+    "category": "decomposition",
+    "question": "哪个产品的UNDER数量最多，连续UNDER应该怎么处理？",
+    "passed": true,
+    "expected": "Independent database and knowledge questions",
+    "actual": "DB: 哪个产品的UNDER数量最多？\nKnowledge: 连续UNDER应该怎么处理？",
+    "error": null
+  },
+  {
+    "category": "decomposition",
+    "question": "最近30天异常率最高的设备是哪台，是否需要进行校准？",
+    "passed": true,
+    "expected": "Independent database and knowledge questions",
+    "actual": "DB: 最近30天异常率最高的设备是哪台？\nKnowledge: 该设备的校准要求是什么？",
+    "error": null
+  }
+]

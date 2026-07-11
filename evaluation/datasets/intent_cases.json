@@ -1,0 +1,46 @@
+[
+  {
+    "question": "哪个设备的异常率最高？",
+    "expected_intent": "database"
+  },
+  {
+    "question": "最近30天每天的平均重量偏差是多少？",
+    "expected_intent": "database"
+  },
+  {
+    "question": "每个产品的超重数量分别是多少？",
+    "expected_intent": "database"
+  },
+  {
+    "question": "E102报警是什么意思？",
+    "expected_intent": "knowledge"
+  },
+  {
+    "question": "连续三次UNDER应该怎么处理？",
+    "expected_intent": "knowledge"
+  },
+  {
+    "question": "重量传感器什么时候需要校准？",
+    "expected_intent": "knowledge"
+  },
+  {
+    "question": "哪个设备异常率最高，根据SOP应该检查什么？",
+    "expected_intent": "hybrid"
+  },
+  {
+    "question": "找出UNDER最多的产品并说明处理流程。",
+    "expected_intent": "hybrid"
+  },
+  {
+    "question": "目前哪台设备最需要校准？",
+    "expected_intent": "hybrid"
+  },
+  {
+    "question": "你好",
+    "expected_intent": "general"
+  },
+  {
+    "question": "谢谢",
+    "expected_intent": "general"
+  }
+]
