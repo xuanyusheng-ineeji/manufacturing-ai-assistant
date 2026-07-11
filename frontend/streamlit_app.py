@@ -26,7 +26,9 @@ from app.services.manufacturing_service import (
     get_product_summary,
     get_recent_abnormal_records,
 )
-
+from app.services.equipment_health_service import (
+    calculate_equipment_health,
+)
 
 st.set_page_config(
     page_title="Manufacturing AI Assistant",
@@ -655,7 +657,253 @@ if st.button(
             "Unable to run root-cause analysis: "
             f"{exc}"
         )
-        
+
+st.divider()
+
+st.subheader("Equipment Health")
+
+st.caption(
+    "Health score combines abnormal rate, rework rate, "
+    "recent trend and weight deviation."
+)
+
+health_result = calculate_equipment_health()
+
+if health_result.summary_df.empty:
+    st.info(
+        "No equipment health data is available."
+    )
+else:
+    health_summary_df = (
+        health_result.summary_df
+    )
+
+    health_columns = st.columns(4)
+
+    total_equipment = len(
+        health_summary_df
+    )
+
+    healthy_count = int(
+        (
+            health_summary_df["health_status"]
+            == "Healthy"
+        ).sum()
+    )
+
+    risk_count = int(
+        health_summary_df[
+            "health_status"
+        ].isin(
+            [
+                "Risk",
+                "Critical",
+            ]
+        ).sum()
+    )
+
+    average_score = float(
+        health_summary_df[
+            "health_score"
+        ].mean()
+    )
+
+    with health_columns[0]:
+        st.metric(
+            "Equipment Count",
+            total_equipment,
+        )
+
+    with health_columns[1]:
+        st.metric(
+            "Average Health Score",
+            f"{average_score:.1f}",
+        )
+
+    with health_columns[2]:
+        st.metric(
+            "Healthy Equipment",
+            healthy_count,
+        )
+
+    with health_columns[3]:
+        st.metric(
+            "Risk Equipment",
+            risk_count,
+        )
+health_chart_df = (
+    health_summary_df.sort_values(
+        "health_score",
+        ascending=True,
+    )
+)
+
+health_figure = px.bar(
+    health_chart_df,
+    x="health_score",
+    y="machine_name",
+    orientation="h",
+    text="health_score",
+    title="Equipment Health Score",
+    hover_data=[
+        "equipment_cd",
+        "health_status",
+        "abnormal_rate",
+        "rework_rate",
+        "abnormal_rate_change",
+    ],
+)
+
+health_figure.update_traces(
+    texttemplate="%{text:.1f}",
+    textposition="outside",
+)
+
+health_figure.update_layout(
+    xaxis_title="Health Score",
+    yaxis_title="Equipment",
+    xaxis_range=[0, 100],
+)
+
+st.plotly_chart(
+    health_figure,
+    use_container_width=True,
+)
+display_health_df = (
+    health_summary_df.rename(
+        columns={
+            "health_rank": "Rank",
+            "equipment_cd": "Equipment Code",
+            "machine_name": "Equipment",
+            "health_score": "Health Score",
+            "health_status": "Status",
+            "abnormal_rate": "Abnormal Rate (%)",
+            "rework_rate": "Rework Rate (%)",
+            "abnormal_rate_change": (
+                "7-Day Rate Change (%p)"
+            ),
+        }
+    )
+)
+
+st.dataframe(
+    display_health_df,
+    use_container_width=True,
+    hide_index=True,
+)
+st.markdown("### Equipment Details")
+
+equipment_labels = {
+    (
+        f"{row['equipment_cd']} - "
+        f"{row['machine_name']}"
+    ): row["equipment_cd"]
+    for _, row in health_result.detail_df.iterrows()
+}
+
+selected_health_equipment_label = st.selectbox(
+    "Select equipment for health details",
+    options=list(equipment_labels.keys()),
+    key="health_equipment_selector",
+)
+
+selected_health_equipment_cd = equipment_labels[
+    selected_health_equipment_label
+]
+
+selected_health_rows = health_result.detail_df[
+    health_result.detail_df["equipment_cd"]
+    == selected_health_equipment_cd
+]
+
+if selected_health_rows.empty:
+    st.info("No health details are available for this equipment.")
+else:
+    selected_health_row = selected_health_rows.iloc[0]
+
+    detail_columns = st.columns(4)
+
+    with detail_columns[0]:
+        st.metric(
+            "Health Score",
+            f"{selected_health_row['health_score']:.1f}",
+        )
+
+    with detail_columns[1]:
+        st.metric(
+            "Abnormal Rate",
+            f"{selected_health_row['abnormal_rate']:.2f}%",
+        )
+
+    with detail_columns[2]:
+        st.metric(
+            "Rework Rate",
+            f"{selected_health_row['rework_rate']:.2f}%",
+        )
+
+    with detail_columns[3]:
+        st.metric(
+            "Recent Change",
+            (
+                f"{selected_health_row['abnormal_rate_change']:+.2f}"
+                " %p"
+            ),
+        )
+
+    detail_columns_second = st.columns(4)
+
+    with detail_columns_second[0]:
+        st.metric(
+            "Measurement Count",
+            f"{int(selected_health_row['measurement_count']):,}",
+        )
+
+    with detail_columns_second[1]:
+        st.metric(
+            "Abnormal Count",
+            f"{int(selected_health_row['abnormal_count']):,}",
+        )
+
+    with detail_columns_second[2]:
+        st.metric(
+            "Average Absolute Weight Difference",
+            (
+                f"{selected_health_row['avg_abs_weight_diff']:.2f} g"
+            ),
+        )
+
+    with detail_columns_second[3]:
+        st.metric(
+            "Status",
+            selected_health_row["health_status"],
+        )
+
+with st.expander(
+    "How is the health score calculated?"
+):
+    st.markdown(
+        """
+The score begins at **100 points**.
+
+Penalties are applied for:
+
+- High abnormal rate
+- High rework rate
+- Increasing abnormal rate during the latest seven days
+- Large average weight deviation
+
+Status thresholds:
+
+- **Healthy:** 85–100
+- **Watch:** 70–84.9
+- **Risk:** 50–69.9
+- **Critical:** below 50
+
+This is a monitoring score, not a confirmed maintenance diagnosis.
+"""
+    )
+
+
 st.divider()
 
 st.subheader("Manufacturing AI Assistant")
