@@ -4,7 +4,10 @@ import sys
 
 import pandas as pd
 import streamlit as st
-
+from frontend.components.styles import (
+    apply_global_styles,
+    section_header,
+)
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(BASE_DIR))
@@ -40,7 +43,7 @@ st.set_page_config(
     page_icon="📊",
     layout="wide",
 )
-
+apply_global_styles()
 
 @st.cache_data(ttl=300)
 def load_items() -> pd.DataFrame:
@@ -103,7 +106,13 @@ kpi_summary = get_kpi_summary(
 )
 
 
-st.subheader("Production Overview")
+section_header(
+    title="Production Overview",
+    description=(
+        "Key production, quality and rework indicators "
+        "for the selected period."
+    ),
+)
 
 metric_row(
     [
@@ -265,7 +274,13 @@ weight_process_chart(
 st.divider()
 
 
-st.subheader("Recent Abnormal Measurements")
+section_header(
+    title="Recent Abnormal Measurements",
+    description=(
+        "Latest OVER and UNDER measurements matching "
+        "the selected filters."
+    ),
+)
 
 abnormal_records_df = get_recent_abnormal_records(
     start_date=start_date,

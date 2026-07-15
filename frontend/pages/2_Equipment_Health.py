@@ -23,13 +23,15 @@ from frontend.components.tables import (
     dataframe_table,
 )
 
-
+from frontend.components.styles import (
+    apply_global_styles,
+)
 st.set_page_config(
     page_title="Equipment Health",
     page_icon="🏥",
     layout="wide",
 )
-
+apply_global_styles()
 
 page_header(
     title="🏥 Equipment Health",

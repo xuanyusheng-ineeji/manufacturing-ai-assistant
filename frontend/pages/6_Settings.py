@@ -15,7 +15,9 @@ sys.path.insert(0, str(BASE_DIR))
 
 from frontend.components.header import page_header
 from frontend.components.metrics import metric_row
-
+from frontend.components.styles import (
+    apply_global_styles,
+)
 
 ENV_PATH = BASE_DIR / ".env"
 DATABASE_PATH = BASE_DIR / "data" / "manufacturing.db"
@@ -35,7 +37,7 @@ st.set_page_config(
     page_icon="⚙️",
     layout="wide",
 )
-
+apply_global_styles()
 
 def mask_api_key(
     api_key: str | None,

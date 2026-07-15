@@ -22,14 +22,16 @@ from frontend.components.tables import (
     dataframe_table,
     expandable_table,
 )
-
+from frontend.components.styles import (
+    apply_global_styles,
+)
 
 st.set_page_config(
     page_title="Root Cause Analysis",
     page_icon="🚨",
     layout="wide",
 )
-
+apply_global_styles()
 
 page_header(
     title="🚨 Root Cause Analysis",

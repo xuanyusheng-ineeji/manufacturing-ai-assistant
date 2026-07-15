@@ -3,7 +3,9 @@ import sys
 
 import streamlit as st
 
-
+from components.styles import (
+    apply_global_styles,
+)
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR))
 
@@ -13,6 +15,7 @@ st.set_page_config(
     page_icon="🏭",
     layout="wide",
 )
+apply_global_styles()
 
 
 st.title("🏭 Manufacturing AI Assistant")

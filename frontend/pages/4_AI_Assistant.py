@@ -15,14 +15,16 @@ from app.services.unified_assistant_service import (
 from frontend.components.header import (
     page_header,
 )
-
+from frontend.components.styles import (
+    apply_global_styles,
+)
 
 st.set_page_config(
     page_title="AI Assistant",
     page_icon="🤖",
     layout="wide",
 )
-
+apply_global_styles()
 
 page_header(
     title="🤖 Manufacturing AI Assistant",
