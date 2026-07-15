@@ -3,31 +3,35 @@ from pathlib import Path
 import sys
 
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 import streamlit as st
-from frontend.components.metrics import (
-    metric_row,
-)
-from frontend.components.filters import (
-    dashboard_filters,
-)
+
+
 BASE_DIR = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(BASE_DIR))
 
 
 from app.services.manufacturing_service import (
-    get_date_range,
-    get_items,
-    get_equipment,
-    get_kpi_summary,
-    get_daily_weight_trend,
     get_daily_abnormal_trend,
+    get_daily_weight_trend,
+    get_date_range,
+    get_equipment,
     get_equipment_summary,
+    get_items,
+    get_kpi_summary,
     get_product_summary,
     get_recent_abnormal_records,
 )
-
+from frontend.components.charts import (
+    horizontal_bar_chart,
+    line_chart,
+    weight_process_chart,
+)
+from frontend.components.filters import dashboard_filters
+from frontend.components.metrics import metric_row
+from frontend.components.tables import (
+    dataframe_table,
+    expandable_table,
+)
 
 st.set_page_config(
     page_title="Manufacturing Dashboard",
@@ -84,12 +88,9 @@ filter_result = dashboard_filters(
 
 start_date = filter_result.start_date
 end_date = filter_result.end_date
-selected_item_cd = (
-    filter_result.item_cd
-)
-selected_equipment_cd = (
-    filter_result.equipment_cd
-)
+selected_item_cd = filter_result.item_cd
+selected_equipment_cd = filter_result.equipment_cd
+
 
 kpi_summary = get_kpi_summary(
     start_date=start_date,
@@ -105,9 +106,7 @@ metric_row(
     [
         {
             "label": "Production Orders",
-            "value": (
-                f"{kpi_summary['order_count']:,}"
-            ),
+            "value": f"{kpi_summary['order_count']:,}",
             "help": (
                 "Number of production orders included "
                 "in the selected period."
@@ -115,75 +114,51 @@ metric_row(
         },
         {
             "label": "Production Quantity",
-            "value": (
-                f"{kpi_summary['total_result_qty']:,}"
-            ),
-            "help": (
-                "Total completed production quantity."
-            ),
+            "value": f"{kpi_summary['total_result_qty']:,}",
+            "help": "Total completed production quantity.",
         },
         {
             "label": "Measurement Count",
-            "value": (
-                f"{kpi_summary['measurement_count']:,}"
-            ),
-            "help": (
-                "Total number of weight measurements."
-            ),
+            "value": f"{kpi_summary['measurement_count']:,}",
+            "help": "Total number of weight measurements.",
         },
         {
             "label": "Abnormal Rate",
-            "value": (
-                f"{kpi_summary['abnormal_rate']:.2f}%"
-            ),
+            "value": f"{kpi_summary['abnormal_rate']:.2f}%",
             "help": (
-                "Percentage of OVER and UNDER "
-                "measurements."
+                "Percentage of OVER and UNDER measurements."
             ),
         },
     ]
 )
 
-
 metric_row(
     [
         {
             "label": "Abnormal Count",
-            "value": (
-                f"{kpi_summary['abnormal_count']:,}"
-            ),
-            "help": (
-                "Total number of OVER and UNDER records."
-            ),
+            "value": f"{kpi_summary['abnormal_count']:,}",
+            "help": "Total number of OVER and UNDER records.",
         },
         {
             "label": "Average Weight Difference",
-            "value": (
-                f"{kpi_summary['avg_weight_diff']:.2f} g"
-            ),
+            "value": f"{kpi_summary['avg_weight_diff']:.2f} g",
             "help": (
-                "Average measured weight minus "
-                "standard weight."
+                "Average measured weight minus standard weight."
             ),
         },
         {
             "label": "Rework Quantity",
-            "value": (
-                f"{kpi_summary['total_rework_qty']:,}"
-            ),
+            "value": f"{kpi_summary['total_rework_qty']:,}",
             "help": (
-                "Total rework quantity from "
-                "production orders."
+                "Total rework quantity from production orders."
             ),
         },
         {
             "label": "Rework Rate",
-            "value": (
-                f"{kpi_summary['rework_rate']:.2f}%"
-            ),
+            "value": f"{kpi_summary['rework_rate']:.2f}%",
             "help": (
-                "Rework quantity divided by "
-                "completed production quantity."
+                "Rework quantity divided by completed "
+                "production quantity."
             ),
         },
     ]
@@ -211,63 +186,25 @@ daily_abnormal_df = get_daily_abnormal_trend(
 chart_columns = st.columns(2)
 
 with chart_columns[0]:
-    st.subheader(
-        "Daily Average Weight Difference"
+    line_chart(
+        dataframe=daily_weight_df,
+        x="event_date",
+        y="avg_weight_diff",
+        title="Daily Average Weight Difference",
+        x_label="Date",
+        y_label="Average Weight Difference (g)",
+        add_zero_line=True,
     )
-
-    if daily_weight_df.empty:
-        st.info("No weight trend data.")
-    else:
-        weight_diff_figure = px.line(
-            daily_weight_df,
-            x="event_date",
-            y="avg_weight_diff",
-            markers=True,
-            labels={
-                "event_date": "Date",
-                "avg_weight_diff": (
-                    "Average Weight Difference (g)"
-                ),
-            },
-        )
-
-        weight_diff_figure.add_hline(
-            y=0,
-            line_dash="dash",
-            annotation_text="Target",
-        )
-
-        st.plotly_chart(
-            weight_diff_figure,
-            use_container_width=True,
-        )
-
 
 with chart_columns[1]:
-    st.subheader(
-        "Daily Abnormal Rate"
+    line_chart(
+        dataframe=daily_abnormal_df,
+        x="event_date",
+        y="abnormal_rate",
+        title="Daily Abnormal Rate",
+        x_label="Date",
+        y_label="Abnormal Rate (%)",
     )
-
-    if daily_abnormal_df.empty:
-        st.info("No abnormal trend data.")
-    else:
-        abnormal_figure = px.line(
-            daily_abnormal_df,
-            x="event_date",
-            y="abnormal_rate",
-            markers=True,
-            labels={
-                "event_date": "Date",
-                "abnormal_rate": (
-                    "Abnormal Rate (%)"
-                ),
-            },
-        )
-
-        st.plotly_chart(
-            abnormal_figure,
-            use_container_width=True,
-        )
 
 
 st.divider()
@@ -289,185 +226,68 @@ product_summary_df = get_product_summary(
 ranking_columns = st.columns(2)
 
 with ranking_columns[0]:
-    st.subheader(
-        "Equipment Abnormal Rate"
+    horizontal_bar_chart(
+        dataframe=equipment_summary_df,
+        x="abnormal_rate",
+        y="machine_name",
+        title="Equipment Abnormal Rate",
+        x_label="Abnormal Rate (%)",
+        y_label="Equipment",
+        text="abnormal_rate",
+        value_suffix="%",
     )
-
-    if equipment_summary_df.empty:
-        st.info("No equipment data.")
-    else:
-        equipment_figure = px.bar(
-            equipment_summary_df,
-            x="abnormal_rate",
-            y="machine_name",
-            orientation="h",
-            text="abnormal_rate",
-            labels={
-                "abnormal_rate": (
-                    "Abnormal Rate (%)"
-                ),
-                "machine_name": "Equipment",
-            },
-        )
-
-        equipment_figure.update_traces(
-            texttemplate="%{text:.2f}%",
-            textposition="outside",
-        )
-
-        equipment_figure.update_layout(
-            yaxis={
-                "categoryorder": (
-                    "total ascending"
-                )
-            },
-        )
-
-        st.plotly_chart(
-            equipment_figure,
-            use_container_width=True,
-        )
-
 
 with ranking_columns[1]:
-    st.subheader(
-        "Product Abnormal Rate"
-    )
-
-    if product_summary_df.empty:
-        st.info("No product data.")
-    else:
-        product_figure = px.bar(
-            product_summary_df,
-            x="abnormal_rate",
-            y="item_name",
-            orientation="h",
-            text="abnormal_rate",
-            labels={
-                "abnormal_rate": (
-                    "Abnormal Rate (%)"
-                ),
-                "item_name": "Product",
-            },
-        )
-
-        product_figure.update_traces(
-            texttemplate="%{text:.2f}%",
-            textposition="outside",
-        )
-
-        product_figure.update_layout(
-            yaxis={
-                "categoryorder": (
-                    "total ascending"
-                )
-            },
-        )
-
-        st.plotly_chart(
-            product_figure,
-            use_container_width=True,
-        )
-
-
-st.divider()
-
-
-st.subheader("Weight Process Trend")
-
-if daily_weight_df.empty:
-    st.info("No weight process data.")
-else:
-    weight_process_figure = go.Figure()
-
-    weight_process_figure.add_trace(
-        go.Scatter(
-            x=daily_weight_df[
-                "event_date"
-            ],
-            y=daily_weight_df[
-                "avg_weight"
-            ],
-            mode="lines+markers",
-            name="Average Weight",
-        )
-    )
-
-    weight_process_figure.add_trace(
-        go.Scatter(
-            x=daily_weight_df[
-                "event_date"
-            ],
-            y=daily_weight_df[
-                "avg_std_weight"
-            ],
-            mode="lines",
-            name="Standard Weight",
-            line={
-                "dash": "dash",
-            },
-        )
-    )
-
-    weight_process_figure.update_layout(
-        xaxis_title="Date",
-        yaxis_title="Weight (g)",
-        hovermode="x unified",
-    )
-
-    st.plotly_chart(
-        weight_process_figure,
-        use_container_width=True,
+    horizontal_bar_chart(
+        dataframe=product_summary_df,
+        x="abnormal_rate",
+        y="item_name",
+        title="Product Abnormal Rate",
+        x_label="Abnormal Rate (%)",
+        y_label="Product",
+        text="abnormal_rate",
+        value_suffix="%",
     )
 
 
 st.divider()
 
 
-st.subheader(
-    "Recent Abnormal Measurements"
+weight_process_chart(
+    dataframe=daily_weight_df,
+    title="Weight Process Trend",
 )
 
-abnormal_records_df = (
-    get_recent_abnormal_records(
-        start_date=start_date,
-        end_date=end_date,
-        item_cd=selected_item_cd,
-        equipment_cd=(
-            selected_equipment_cd
-        ),
-        limit=100,
-    )
+
+st.divider()
+
+
+st.subheader("Recent Abnormal Measurements")
+
+abnormal_records_df = get_recent_abnormal_records(
+    start_date=start_date,
+    end_date=end_date,
+    item_cd=selected_item_cd,
+    equipment_cd=selected_equipment_cd,
+    limit=100,
 )
 
 if abnormal_records_df.empty:
     st.success(
-        "No abnormal measurements "
-        "in the selected period."
+        "No abnormal measurements in the selected period."
     )
 else:
-    st.dataframe(
-        abnormal_records_df,
-        use_container_width=True,
-        hide_index=True,
+    dataframe_table(
+        abnormal_records_df
     )
 
 
-with st.expander(
-    "Equipment Summary Data"
-):
-    st.dataframe(
-        equipment_summary_df,
-        use_container_width=True,
-        hide_index=True,
-    )
+expandable_table(
+    title="Equipment Summary Data",
+    dataframe=equipment_summary_df,
+)
 
-
-with st.expander(
-    "Product Summary Data"
-):
-    st.dataframe(
-        product_summary_df,
-        use_container_width=True,
-        hide_index=True,
-    )
+expandable_table(
+    title="Product Summary Data",
+    dataframe=product_summary_df,
+)
