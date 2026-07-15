@@ -32,7 +32,9 @@ from frontend.components.tables import (
     dataframe_table,
     expandable_table,
 )
-
+from frontend.components.header import (
+    page_header,
+)
 st.set_page_config(
     page_title="Manufacturing Dashboard",
     page_icon="📊",
@@ -55,11 +57,12 @@ def load_date_range() -> tuple[str, str]:
     return get_date_range()
 
 
-st.title("📊 Manufacturing Dashboard")
-
-st.caption(
-    "Production overview, quality monitoring and "
-    "weight process analysis."
+page_header(
+    title="📊 Manufacturing Dashboard",
+    caption=(
+        "Production overview, quality monitoring and "
+        "weight process analysis."
+    ),
 )
 
 
