@@ -101,72 +101,93 @@ kpi_summary = get_kpi_summary(
 
 st.subheader("Production Overview")
 
-metric_columns = st.columns(4)
+metric_row(
+    [
+        {
+            "label": "Production Orders",
+            "value": (
+                f"{kpi_summary['order_count']:,}"
+            ),
+            "help": (
+                "Number of production orders included "
+                "in the selected period."
+            ),
+        },
+        {
+            "label": "Production Quantity",
+            "value": (
+                f"{kpi_summary['total_result_qty']:,}"
+            ),
+            "help": (
+                "Total completed production quantity."
+            ),
+        },
+        {
+            "label": "Measurement Count",
+            "value": (
+                f"{kpi_summary['measurement_count']:,}"
+            ),
+            "help": (
+                "Total number of weight measurements."
+            ),
+        },
+        {
+            "label": "Abnormal Rate",
+            "value": (
+                f"{kpi_summary['abnormal_rate']:.2f}%"
+            ),
+            "help": (
+                "Percentage of OVER and UNDER "
+                "measurements."
+            ),
+        },
+    ]
+)
 
-with metric_columns[0]:
-    st.metric(
-        label="Production Orders",
-        value=f"{kpi_summary['order_count']:,}",
-    )
 
-with metric_columns[1]:
-    st.metric(
-        label="Production Quantity",
-        value=(
-            f"{kpi_summary['total_result_qty']:,}"
-        ),
-    )
-
-with metric_columns[2]:
-    st.metric(
-        label="Measurement Count",
-        value=(
-            f"{kpi_summary['measurement_count']:,}"
-        ),
-    )
-
-with metric_columns[3]:
-    st.metric(
-        label="Abnormal Rate",
-        value=(
-            f"{kpi_summary['abnormal_rate']:.2f}%"
-        ),
-    )
-
-
-metric_columns_second = st.columns(4)
-
-with metric_columns_second[0]:
-    st.metric(
-        label="Abnormal Count",
-        value=(
-            f"{kpi_summary['abnormal_count']:,}"
-        ),
-    )
-
-with metric_columns_second[1]:
-    st.metric(
-        label="Average Weight Difference",
-        value=(
-            f"{kpi_summary['avg_weight_diff']:.2f} g"
-        ),
-    )
-
-with metric_columns_second[2]:
-    st.metric(
-        label="Rework Quantity",
-        value=(
-            f"{kpi_summary['total_rework_qty']:,}"
-        ),
-    )
-
-with metric_columns_second[3]:
-    st.metric(
-        label="Rework Rate",
-        value=(
-            f"{kpi_summary['rework_rate']:.2f}%"
-        ),
-    )
+metric_row(
+    [
+        {
+            "label": "Abnormal Count",
+            "value": (
+                f"{kpi_summary['abnormal_count']:,}"
+            ),
+            "help": (
+                "Total number of OVER and UNDER records."
+            ),
+        },
+        {
+            "label": "Average Weight Difference",
+            "value": (
+                f"{kpi_summary['avg_weight_diff']:.2f} g"
+            ),
+            "help": (
+                "Average measured weight minus "
+                "standard weight."
+            ),
+        },
+        {
+            "label": "Rework Quantity",
+            "value": (
+                f"{kpi_summary['total_rework_qty']:,}"
+            ),
+            "help": (
+                "Total rework quantity from "
+                "production orders."
+            ),
+        },
+        {
+            "label": "Rework Rate",
+            "value": (
+                f"{kpi_summary['rework_rate']:.2f}%"
+            ),
+            "help": (
+                "Rework quantity divided by "
+                "completed production quantity."
+            ),
+        },
+    ]
+)
 
 
 st.divider()
