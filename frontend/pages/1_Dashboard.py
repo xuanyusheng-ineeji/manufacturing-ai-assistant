@@ -9,7 +9,9 @@ import streamlit as st
 from frontend.components.metrics import (
     metric_row,
 )
-
+from frontend.components.filters import (
+    dashboard_filters,
+)
 BASE_DIR = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(BASE_DIR))
 
@@ -73,86 +75,21 @@ max_date = datetime.strptime(
 items_df = load_items()
 equipment_df = load_equipment()
 
+filter_result = dashboard_filters(
+    min_date=min_date,
+    max_date=max_date,
+    items_df=items_df,
+    equipment_df=equipment_df,
+)
 
-item_options = {
-    "All Products": None,
-}
-
-for _, row in items_df.iterrows():
-    label = (
-        f"{row['item_cd']} - "
-        f"{row['item_name']}"
-    )
-    item_options[label] = row["item_cd"]
-
-
-equipment_options = {
-    "All Equipment": None,
-}
-
-for _, row in equipment_df.iterrows():
-    label = (
-        f"{row['equipment_cd']} - "
-        f"{row['equipment_name']}"
-    )
-    equipment_options[label] = row["equipment_cd"]
-
-
-with st.sidebar:
-    st.header("Dashboard Filters")
-
-    selected_date_range = st.date_input(
-        "Date Range",
-        value=(min_date, max_date),
-        min_value=min_date,
-        max_value=max_date,
-        key="dashboard_date_range",
-    )
-
-    selected_item_label = st.selectbox(
-        "Product",
-        options=list(item_options.keys()),
-        key="dashboard_product",
-    )
-
-    selected_equipment_label = st.selectbox(
-        "Equipment",
-        options=list(
-            equipment_options.keys()
-        ),
-        key="dashboard_equipment",
-    )
-
-    if st.button(
-        "Refresh Dashboard",
-        use_container_width=True,
-        key="refresh_dashboard",
-    ):
-        st.cache_data.clear()
-        st.rerun()
-
-
-if len(selected_date_range) == 2:
-    start_date = selected_date_range[
-        0
-    ].strftime("%Y-%m-%d")
-
-    end_date = selected_date_range[
-        1
-    ].strftime("%Y-%m-%d")
-else:
-    start_date = min_date_string
-    end_date = max_date_string
-
-
-selected_item_cd = item_options[
-    selected_item_label
-]
-
-selected_equipment_cd = equipment_options[
-    selected_equipment_label
-]
-
+start_date = filter_result.start_date
+end_date = filter_result.end_date
+selected_item_cd = (
+    filter_result.item_cd
+)
+selected_equipment_cd = (
+    filter_result.equipment_cd
+)
 
 kpi_summary = get_kpi_summary(
     start_date=start_date,
